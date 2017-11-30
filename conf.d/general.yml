@@ -1,0 +1,21 @@
+  
+  logger:
+    log: "/logs/nvsa.log"
+    debug: False
+    report: "/reports"
+
+  nessus:
+    folders:
+      test: "Test"
+    folder:  
+      default: "Default"  
+      delimiter: "-"
+      position: 0
+    targets: "/conf.d/targets.yml"
+    host_ttl: 3
+    scan_ttl: 7 
+    server: ""
+    accessKey: ""
+    secretKey: ""
+    scan_template_uuid: ""
+
