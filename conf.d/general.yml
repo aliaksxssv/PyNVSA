@@ -17,5 +17,6 @@
     server: ""
     accessKey: ""
     secretKey: ""
+	scan_policy_id: ""
     scan_template_uuid: ""
 

@@ -7,15 +7,24 @@ from datetime import datetime
 
 
 def getReport():
-	cfg = configurator.get_config("general")
+
+	cfgFile = configurator.get_config("general")
+	cfg = yaml.load(cfgFile)
+	cfgFile.close()
+
 	conn = nessus.api()	
 	scan = nessus.scan()
 	report = nessus.report()
 
 	dir_path = os.path.dirname(os.path.realpath(__file__))
 
-	targets = configurator.get_config("targets", dir_path + cfg['logger']['log'])	
-	
+	targetsFile = configurator.get_config("targets", dir_path + cfg['logger']['log'], cfg['logger']['debug'])
+	try:
+		targets = yaml.load(targetsFile)
+	except Exception as e:
+		logger.write(str(datetime.now()) + " ERROR " + str(e) + ". Can not load targets list. Exiting.", dir_path + cfg['logger']['log'])
+		sys.exit()
+
 	for folder in targets:
 		scan.folder = folder
 		scan.getFolderID()
@@ -54,8 +63,8 @@ def getReport():
 			else:
 				if cfg['logger']['debug'] is True:
 					logger.write(str(datetime.now()) + " DEBUG Scan and Report are actual for folder = " + str(folder)  + ", ip = " + str(ip), dir_path + cfg['logger']['log'])
-			
-	configurator.update_config(targets, dir_path + cfg['nessus']['targets'])
+
+	configurator.update_config(targets, targetsFile)			
 
 	sys.exit()
 

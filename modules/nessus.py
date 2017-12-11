@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os, urllib2, ssl, json
+import os, urllib2, ssl, json, yaml
 import configurator, logger
 
 
@@ -53,11 +53,13 @@ class scan():
 
 
 	def create(self):
-		cfg = configurator.get_config("general")
+		cfgFile = configurator.get_config("general")
+		cfg = yaml.load(cfgFile)
+		cfgFile.close()
 
 		conn = api()
 		conn.url = '/scans'
-		conn.data = '{ \"uuid\": \"' + cfg['nessus']['scan_template_uuid'] + '\", \"settings\": { \"name\": \"' + str(self.name) + '\", \"enabled\": true, \"folder_id\": ' + str(self.folderID)  + ', \"scanner_id\": 1, \"policy_id\": 169, \"text_targets\": \"' + str(self.target)  + '\" }}'
+		conn.data = '{ \"uuid\": \"' + cfg['nessus']['scan_template_uuid'] + '\", \"settings\": { \"name\": \"' + str(self.name) + '\", \"enabled\": true, \"folder_id\": ' + str(self.folderID)  + ', \"scanner_id\": 1, \"policy_id\": ' + cfg['nessus']['scan_policy_id'] + ', \"text_targets\": \"' + str(self.target)  + '\" }}'
 		self.ID = conn.sendRequest()["scan"]["id"]
 
 		
@@ -96,7 +98,10 @@ class api():
 		self.data = ''
 
 	def sendRequest(self):
-		cfg = configurator.get_config("general")
+		cfgFile = configurator.get_config("general")
+		cfg = yaml.load(cfgFile)
+		cfgFile.close()
+
 		ctx = ssl.create_default_context()
 		ctx.check_hostname = False
 		ctx.verify_mode = ssl.CERT_NONE
