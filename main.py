@@ -62,7 +62,10 @@ def getReport():
 
 def addTarget():
 	global folder
-	cfg = configurator.get_config("general")
+
+	cfgFile = configurator.get_config("general")
+	cfg = yaml.load(cfgFile)
+	cfgFile.close()
 
 	dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -72,7 +75,14 @@ def addTarget():
 		if folder_pattern in cfg['nessus']['folders']:
 			folder = cfg['nessus']['folders'][folder_pattern]
 
-	targets = configurator.get_config("targets", dir_path + cfg['logger']['log'])
+	targetsFile = configurator.get_config("targets", dir_path + cfg['logger']['log'], cfg['logger']['debug'])
+	try:
+		targets = yaml.load(targetsFile)
+	except Exception as e:
+		if cfg['logger']['debug'] is True:
+			logger.write(str(datetime.now()) + " DEDUG " + str(e) + ". New list of targets will be created.", dir_path + cfg['logger']['log'])
+		targets = {}
+
 
 	if cfg['logger']['debug'] is True:
 		event = str(datetime.now()) + " DEBUG Target's config will be updated: folder = " + str(folder) + ", ip = " + str(ip) + ", host = " + str(host)
@@ -87,10 +97,11 @@ def addTarget():
 			try:
 				targets[str(folder)] = {str(ip):{'hosts':{str(host):{'date': datetime.now().strftime("%Y-%m-%d")}}}}
 			except Exception as e:
+				logger.write(str(datetime.now()) + " " + str(targets), dir_path + cfg['logger']['log'])
 				logger.write(str(datetime.now()) + " ERROR Can not update targets.yml configuration file. Details: folder = " + str(folder) + ", ip = " + str(ip) + ", host = " + str(host) + ". Exception: %s" % str(e), dir_path + cfg['logger']['log'])
 				sys.exit()
 
-	configurator.update_config(targets, dir_path + cfg['nessus']['targets'])
+	configurator.update_config(targets, targetsFile)
 
 	sys.exit()
 
