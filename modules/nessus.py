@@ -34,6 +34,7 @@ class scan():
 				self.status = self.config['scans'][i]['status']
 
 	def getFolderID(self):
+		self.folderID = ''
 		for i in range(len(self.config['folders'])):
 			if self.folder == self.config['folders'][i]['name']:
 				self.folderID = self.config['folders'][i]['id']
