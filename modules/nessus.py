@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os, urllib2, ssl, json, yaml
+import os, sys, socket, urllib2, ssl, json, yaml
 import configurator, logger
+from datetime import datetime
 
 
 class scan():
@@ -108,11 +109,22 @@ class api():
 		ctx.verify_mode = ssl.CERT_NONE
 		opener = urllib2.build_opener(urllib2.HTTPSHandler(context=ctx))
 		if self.data == '':
-			request = urllib2.Request('https://' + cfg["nessus"]["server"]  + ':8834' + str(self.url))
+			request = urllib2.Request('https://' + cfg["nessus"]["server"]  + ':' + cfg["nessus"]["port"] + str(self.url))
 		else:
-			request = urllib2.Request('https://' + cfg["nessus"]["server"]  + ':8834' + str(self.url), data=self.data)
+			request = urllib2.Request('https://' + cfg["nessus"]["server"]  + ':' + cfg["nessus"]["port"] + str(self.url), data=self.data)
 		request.add_header('X-ApiKeys', 'accessKey=' + str(cfg["nessus"]["accessKey"]) + '; secretKey=' + str(cfg["nessus"]["secretKey"]))
 		request.add_header('Content-Type', 'application/json')
+	
+		try:
+			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			s.settimeout(1.0)
+			s.connect((cfg["nessus"]["server"], cfg["nessus"]["port"]))
+		except Exception as e:
+			s.close()
+			dir_path = os.path.dirname(os.path.realpath(__file__)) + "/.."
+			logger.write(str(datetime.now()) + " ERROR " + str(e) + ". Can not connect to Nessus API. Exiting.", dir_path + cfg['logger']['log'])
+			sys.exit()
+
 		reply = opener.open(request).read().decode('utf8')
 		self.data = ''
 		try:
